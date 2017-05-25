@@ -1,0 +1,70 @@
+#ifndef ATDPBASICS_HPP
+#define ATDPBASICS_HPP
+
+
+#include <config.hpp>
+
+struct REGION {
+        QString chrom;
+        QString gene_id;
+        QString refseq_id;
+        bool strand;
+        qint64 start;
+        qint64 end;
+        qint64 txStart;
+        qint64 txEnd;
+};
+
+struct EXPERIMENT_INFO {
+        int fragmentsize;
+        int mapped;
+        bool pair;
+        QString db;
+        QString source;
+        QString filepath;
+        QString tbl1_id;
+        QString tbl2_id;
+        QString plotname;
+        QString tbl1_name;
+        QString tbl2_name;
+
+        QJsonArray rpkmnames;
+
+        QList<QSharedPointer<REGION> > regions;
+
+
+        BamReader reader;
+        SamHeader header;
+        RefVector references;
+        QMap<QString,QPair<int,int> > ref_map;
+        QSet<int> tids;//Reads from this chromosome (ids) should be twiced
+        QSet<int> i_tids;//Reads from this chromosome (ids) should be ignored
+
+        QVector<double> avd_total;
+        QVector<double> avd_body;
+        QVector<QPair<QSharedPointer<REGION>,QVector<quint16> > > avd_matrix;
+        QVector<QPair<QSharedPointer<REGION>,QJsonArray > > rpkm_matrix;
+        QVector<QPair<QSharedPointer<REGION>,QJsonArray > > body_matrix;
+};
+
+class ATDPBasics
+{
+    private:
+        EXPERIMENT_INFO* exp_i;// experiment_info;
+        int avd_window;
+        int avd_whole_region;
+        int avd_heat_window;
+        int avd_bodysize;
+        QString twicechr;
+        QString ignorechr;
+        void getRegions(void);
+
+    public:
+
+        static void prn_debug(QString ,BamAlignment &);
+
+        ATDPBasics(EXPERIMENT_INFO*);
+        void RegionsProcessing(void);
+};
+
+#endif // ATDPBASICS_HPP
