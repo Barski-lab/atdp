@@ -266,6 +266,7 @@ void ATDP::getRecordInfo() {
     BamGeneralInfo bam_general_info;
     get_bam_info (ei->reader, bam_general_info);
     ei->mapped = bam_general_info.aligned;
+    ei->reader.Close();
 
     experiment_info.insert(gArgs().getArgs("bam").toString(),*ei);
 }
