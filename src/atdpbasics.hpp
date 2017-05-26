@@ -19,19 +19,11 @@ struct EXPERIMENT_INFO {
         int fragmentsize;
         int mapped;
         bool pair;
-        QString db;
-        QString source;
         QString filepath;
-        QString tbl1_id;
-        QString tbl2_id;
         QString plotname;
-        QString tbl1_name;
-        QString tbl2_name;
-
         QJsonArray rpkmnames;
 
         QList<QSharedPointer<REGION> > regions;
-
 
         BamReader reader;
         SamHeader header;
@@ -45,6 +37,9 @@ struct EXPERIMENT_INFO {
         QVector<QPair<QSharedPointer<REGION>,QVector<quint16> > > avd_matrix;
         QVector<QPair<QSharedPointer<REGION>,QJsonArray > > rpkm_matrix;
         QVector<QPair<QSharedPointer<REGION>,QJsonArray > > body_matrix;
+
+        bool make_index ();
+
 };
 
 class ATDPBasics

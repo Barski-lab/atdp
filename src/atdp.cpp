@@ -57,36 +57,36 @@ ATDP::ATDP(QObject* parent):
 
 void ATDP::start() {
 
-//    EXPERIMENT_INFO* exp_i;
-//    bool preliminary_atdp=false;
+    EXPERIMENT_INFO* exp_i;
+    bool preliminary_atdp=false;
 
-//    qDebug()<<"start";
+    qDebug()<<"start";
 
-//    /*
-//     * Prepare experiments to proccess
-//     */
-//    if(!gArgs().getArgs("avd_luid").toString().isEmpty()) {
-//        preliminary_atdp=true;
-//        this->getRecordInfo();
-//    } else if(!gArgs().getArgs("avd_guid").toString().isEmpty()) {
-//        this->getRecordsInfo();
-//    } else {
-//        throw "Starving for uid";
-//    }
+    /*
+     * Prepare experiments to proccess
+     */
+    if(!gArgs().getArgs("bam").toString().isEmpty()) {
+        preliminary_atdp=true;
+        this->getRecordInfo();
+    } else {
+        throw "Starving for uid";
+    }
 
 
-//    QThreadPool *t_pool=QThreadPool::globalInstance();
+    QThreadPool *t_pool=QThreadPool::globalInstance();
 
-//    foreach(QString key,experiment_info.keys()){
-//        t_pool->start(new ATDPThreads(&experiment_info[key]));
-//    }//foreach trough experiments
+    foreach(QString key,experiment_info.keys()){
+        t_pool->start(new ATDPThreads(&experiment_info[key]));
+    }//foreach trough experiments
 
-//    if(t_pool->activeThreadCount()!=0) {
-//        qDebug()<<"waiting threads";
-//        t_pool->waitForDone();
-//        qDebug()<<"threads done";
-//    }
+    if(t_pool->activeThreadCount()!=0) {
+        qDebug()<<"waiting threads";
+        t_pool->waitForDone();
+        qDebug()<<"threads done";
+    }
 
+
+//    // Write the results to file
 //    if(preliminary_atdp) {
 //        QSqlQuery q;
 //        exp_i=&experiment_info[experiment_info.keys().at(0)];
@@ -231,38 +231,41 @@ void ATDP::start() {
 //        outFile.close();
 //    }
 
-//    qDebug()<<"end";
+    qDebug()<<"end";
 
-//    emit finished();
+    emit finished();
 }
 
 
 void ATDP::getRecordInfo() {
-//    QSqlQuery q;
-//    q.prepare("select g.db,g.annottable,l.fragmentsize,l.tagsmapped,l.filename from labdata l,genome g where l.uid=? and g.id=l.genome_id");
-//    q.bindValue(0, gArgs().getArgs("avd_luid").toString());
-//    if(!q.exec()) {
-//        qDebug()<<"Query error info: "<<q.lastError().text();
-//        throw "Error query to DB";
-//    }
-//    q.next();
-//    EXPERIMENT_INFO *ei = new EXPERIMENT_INFO();
-//    ei->source=q.value(1).toString();
-//    ei->db=q.value(0).toString();
-//    ei->fragmentsize=q.value(2).toInt();
-//    ei->mapped=q.value(3).toInt();
-//    ei->filepath=q.value(4).toString()+"/"+q.value(4).toString()+".bam";
-//    ei->avd_total.resize(avd_whole_region);
-//    ei->avd_total.fill(0,avd_whole_region);
-//    ei->avd_body.resize(avd_bodysize*3);
-//    ei->avd_body.fill(0,avd_bodysize*3);
-//    experiment_info.insert(gArgs().getArgs("avd_luid").toString(),*ei);
+    /*
+    q.prepare("select g.db,g.annottable,l.fragmentsize,l.tagsmapped,l.filename from labdata l,genome g where l.uid=? and g.id=l.genome_id");
+    +------+--------------+--------------+------------+--------------------------------------+
+    | db   | annottable   | fragmentsize | tagsmapped | filename                             |
+    +------+--------------+--------------+------------+--------------------------------------+
+    | hg19 | refGene_2012 |          147 |    6732122 | SC949044-F05E-B6B9-DE22-6817DBBCB66E |
+    +------+--------------+--------------+------------+--------------------------------------+
+    */
+
+    if(gArgs().getArgs("bam").toString().isEmpty()) {
+        throw "Set input BAM file";
+    }
+    EXPERIMENT_INFO *ei = new EXPERIMENT_INFO();
+    ei->fragmentsize=gArgs().getArgs("fragmentsize").toInt();
+    ei->filepath=gArgs().getArgs("bam").toString();
+    ei->avd_total.resize(avd_whole_region);
+    ei->avd_total.fill(0,avd_whole_region);
+    ei->avd_body.resize(avd_bodysize*3);
+    ei->avd_body.fill(0,avd_bodysize*3);
+    experiment_info.insert(gArgs().getArgs("bam").toString(),*ei);
 }
 
 /*
  * designed for atdp advanced analysis takes list pairs <tbl1_id, tbl2_id> (<chip,rna>)
  */
-void ATDP::getRecordsInfo() {
+
+
+//void ATDP::getRecordsInfo() {
 //    QSqlQuery q;
 
 //    q.prepare("select a.pltname,tbl1_id,tbl2_id,l.fragmentsize,l.tagsmapped,g2.tableName,g.tableName,g2.name,g.name "
@@ -291,7 +294,7 @@ void ATDP::getRecordsInfo() {
 //        ei->tbl2_name=q.value(7).toString();
 //        experiment_info.insert(q.value(2).toString()+"="+q.value(1).toString(),*ei);
 //    }
-}
+//}
 
 
 ATDP::~ATDP()

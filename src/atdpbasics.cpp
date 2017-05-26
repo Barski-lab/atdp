@@ -1,5 +1,36 @@
 #include "atdpbasics.hpp"
 
+
+bool EXPERIMENT_INFO::make_index (){
+    if (not reader.HasIndex()){
+        qDebug() << "Current BAM file isn't indexed";
+        qDebug() << "Trying to find index files in the same directory";
+        // Trying to load index data from the filesystem
+        // If BamIndex::STANDARD we are looking for BAI file
+        if (reader.LocateIndex(BamIndex::STANDARD)){
+            qDebug() << "Located and loaded index file from disk";
+        } else {
+            qDebug() << "Couldn't locate index file";
+            qDebug() << "Trying to create the new one";
+            // Trying to create index data ourself
+            // BamIndex::STANDARD - we are trying to create BAI file
+            if (not reader.CreateIndex(BamIndex::STANDARD)){
+                qDebug() << "Cannot create index for current bam file. Exiting";
+                return false;
+            };
+            qDebug() << "Index file for current BAM file is succesfully created";
+        }
+    }
+    return true;
+}
+
+
+
+
+
+
+
+
 ATDPBasics::ATDPBasics(EXPERIMENT_INFO* e)
 {
     exp_i=e;
@@ -12,8 +43,7 @@ ATDPBasics::ATDPBasics(EXPERIMENT_INFO* e)
 
     /* Open bam files preparing EXPERIMENT_INFO class
      */
-    QString fp=gSettings().getValue("wardrobe")+"/"+gSettings().getValue("preliminary")+"/"+exp_i->filepath;
-    //    if ( !exp_i->reader.Open(exp_i->filepath.toStdString()) ) {
+    QString fp = exp_i->filepath;
     if ( !exp_i->reader.Open(fp.toStdString()) ) {
         qDebug() << "Could not open input BAM files.";
         throw "Could not open input BAM files";
@@ -37,9 +67,8 @@ ATDPBasics::ATDPBasics(EXPERIMENT_INFO* e)
                     QPair<int,int>(RefID,exp_i->references[RefID].RefLength));
     }
 
-    if(!exp_i->reader.LocateIndex()) {
-        qDebug() << "Could not locate index.";
-        throw "Could not locate index.";
+    if(!exp_i->make_index()) {
+        throw "Could not locate index";
     }
     /*
      * Fill in all regions for the current uid
@@ -49,122 +78,93 @@ ATDPBasics::ATDPBasics(EXPERIMENT_INFO* e)
 
 void ATDPBasics::getRegions() {
 
-//    QSqlQuery q;
+    if(gArgs().getArgs("annotation").toString().isEmpty()) {
+        throw "Set gene annotaion file";
+    }
 
-//    q.prepare("select * from `"+exp_i->db+"`.`"+exp_i->source+
-//              "` where chrom not like '%\\_%' and chrom not like '%control%'");// order by chrom,strand,txStart,txEnd"
-//    if(!q.exec()) {
-//        qDebug()<<"Query error info: "<<q.lastError().text();
-//        throw "Error query to DB";
-//    }
+    string annotation_filename = gArgs().getArgs("annotation").toString().toStdString();
+    ifstream annotation_stream (annotation_filename.c_str());
+    if (!annotation_stream) {
+        throw "Failed to open annotaion file";
+    }
 
-//    QSqlRecord rec=q.record();
+    std::string line;
+    getline(annotation_stream, line);
+    std::map<std::string,short> column_map;
+    if (line.length() > 0 && line.at(0) == '#'){
+        QStringList header_splitted = QString::fromStdString(line).split(QChar('\t'));
+        for (int i = 0; i < header_splitted.length(); i++){
+            column_map[header_splitted.at(i).toStdString()] = i;
+        }
+    } else {
+        column_map["exonCount"] = 8;
+        column_map["exonStarts"] = 9;
+        column_map["exonEnds"] = 10;
+        column_map["name"] = 1;
+        column_map["name2"] = 12;
+        column_map["chrom"] = 2;
+        column_map["strand"] = 3;
+        column_map["txStart"] = 4;
+        column_map["txEnd"] = 5;
+    }
 
-//    int fieldChrom = rec.indexOf("chrom");
-//    int fieldStrand = rec.indexOf("strand");
-//    int fieldTxStart= rec.indexOf("txStart");
-//    int fieldTxEnd= rec.indexOf("txEnd");
-//    int fieldRefseq_id= rec.indexOf("name");
-//    if(fieldRefseq_id==-1)
-//        fieldRefseq_id= rec.indexOf("refseq_id");
-//    int fieldGene_id= rec.indexOf("name2");
-//    if(fieldGene_id==-1)
-//        fieldGene_id= rec.indexOf("gene_id");
+    while(getline(annotation_stream, line)) {
+        QStringList line_splitted = QString::fromStdString(line).split(QChar('\t'));
 
-//    for(int k=0;k<rec.count();k++) {
-//        if(rec.fieldName(k).contains("RPKM")) {
-//            int rpkm_idx=rec.fieldName(k).indexOf("RPKM");
-//            bool add=true;
-//            if(rpkm_idx > 0){
-//                QString orig_name=rec.fieldName(k).mid(rpkm_idx);
-//                foreach (QJsonValue n, exp_i->rpkmnames) {
-//                    if(n.toString().contains(orig_name)) {
-//                        add=false;
-//                        break;
-//                    }
-//                }
-//            }
-//            if(add) {
-//                exp_i->rpkmnames.append(rec.fieldName(k));
-//            }
-//        }
-//    }
+        QString chr = line_splitted.at(column_map["chrom"]);
+        QChar strand = line_splitted.at(column_map["strand"]).at(0);
+        quint64 txStart = line_splitted.at(column_map["txStart"]).toInt(); // Do we need to add +1
+        quint64 txEnd = line_splitted.at(column_map["txEnd"]).toInt();
+        QString refseq_id = line_splitted.at(column_map["name"]);
+        QString gene_id = line_splitted.at(column_map["name2"]);
 
-//    while(q.next()) {
-//        QString chr=q.value(fieldChrom).toString();
-//        QChar strand=q.value(fieldStrand).toString().at(0);
-//        quint64 txStart=q.value(fieldTxStart).toInt();//+1 ??? FIXME
-//        quint64 txEnd=q.value(fieldTxEnd).toInt();
-//        QString refseq_id=q.value(fieldRefseq_id).toString();
-//        QString gene_id=q.value(fieldGene_id).toString();
-//        if( ignorechr.contains(chr)) {
-//            continue;
-//        }
+        if(ignorechr.contains(chr)) {
+            continue;
+        }
 
-//        QSharedPointer<REGION> region(new REGION());
-//        qint64 start=0,end=0;
+        QSharedPointer<REGION> region(new REGION());
+        qint64 start=0,end=0;
 
-//        if(strand=='+'){
-//            start=txStart-avd_window;//-exp_i->fragmentsize/2;
-//            end=txStart+avd_window;
-//            region->strand=true;
-//        } else {
-//            start=txEnd-avd_window;//-exp_i->fragmentsize/2;
-//            end=txEnd+avd_window;
-//            //            if(!exp_i->regions.isEmpty() && exp_i->regions.last()->start==start) {
-//            //                if(!exp_i->regions.last()->gene_id.contains(gene_id))
-//            //                    exp_i->regions.last()->gene_id.append(","+gene_id);
-//            //                if(!exp_i->regions.last()->refseq_id.contains(refseq_id))
-//            //                    exp_i->regions.last()->refseq_id.append(","+refseq_id);
-//            //                if(exp_i->regions.last()->txStart>txStart)
-//            //                    exp_i->regions.last()->txStart=txStart;
-//            //                region.clear();
-//            //                continue;
-//            //            }
-//            region->strand=false;
-//        }
+        if(strand=='+'){
+            start=txStart-avd_window;//-exp_i->fragmentsize/2;
+            end=txStart+avd_window;
+            region->strand=true;
+        } else {
+            start=txEnd-avd_window;//-exp_i->fragmentsize/2;
+            end=txEnd+avd_window;
+            region->strand=false;
+        }
 
-//        if(!exp_i->regions.isEmpty() && exp_i->regions.last()->start==start) {
-//            if(!exp_i->regions.last()->gene_id.contains(gene_id))
-//                exp_i->regions.last()->gene_id.append(","+gene_id);
-//            if(!exp_i->regions.last()->refseq_id.contains(refseq_id))
-//                exp_i->regions.last()->refseq_id.append(","+refseq_id);
-//            //            if(exp_i->regions.last()->txEnd<txEnd)
-//            //                exp_i->regions.last()->txEnd=txEnd;
-//            region.clear();
-//            continue;
-//        }
+        if(!exp_i->regions.isEmpty() && exp_i->regions.last()->start==start) {
+            if(!exp_i->regions.last()->gene_id.contains(gene_id))
+                exp_i->regions.last()->gene_id.append(","+gene_id);
+            if(!exp_i->regions.last()->refseq_id.contains(refseq_id))
+                exp_i->regions.last()->refseq_id.append(","+refseq_id);
+            region.clear();
+            continue;
+        }
 
-//        region->txStart=txStart;
-//        region->txEnd=txEnd;
+        region->txStart=txStart;
+        region->txEnd=txEnd;
 
-//        region->start=start;
-//        region->end=end;//+exp_i->fragmentsize/2;
+        region->start=start;
+        region->end=end;//+exp_i->fragmentsize/2;
 
-//        region->gene_id=gene_id;
-//        region->refseq_id=refseq_id;
-//        region->chrom=chr;
-//        exp_i->avd_matrix.append(
-//                    QPair<QSharedPointer<REGION>,QVector<quint16> >(
-//                        QSharedPointer<REGION>(region),QVector<quint16>(avd_whole_region/avd_heat_window,0) ) );
-//        QJsonArray body;
-//        for(int c=0;c<300;c++)
-//            body<<0.0;
-//        exp_i->body_matrix.append(
-//                    QPair<QSharedPointer<REGION>,QJsonArray >(
-//                        QSharedPointer<REGION>(region), body) );
+        region->gene_id=gene_id;
+        region->refseq_id=refseq_id;
+        region->chrom=chr;
+        exp_i->avd_matrix.append(
+                    QPair<QSharedPointer<REGION>,QVector<quint16> >(
+                        QSharedPointer<REGION>(region),QVector<quint16>(avd_whole_region/avd_heat_window,0) ) );
+        QJsonArray body;
+        for(int c=0;c<300;c++)
+            body<<0.0;
+        exp_i->body_matrix.append(
+                    QPair<QSharedPointer<REGION>,QJsonArray >(
+                        QSharedPointer<REGION>(region), body) );
 
-//        if(exp_i->rpkmnames.count()>0) {
-//            QJsonArray rpkms;
-//            foreach (QJsonValue n, exp_i->rpkmnames) {
-//                rpkms.append(q.value(rec.indexOf(n.toString())).toDouble());
-//            }
-//            exp_i->rpkm_matrix.append(
-//                        QPair<QSharedPointer<REGION>,QJsonArray >(
-//                            QSharedPointer<REGION>(region), rpkms) );
-//        }
-//        exp_i->regions.append(region);
-//    }
+        exp_i->regions.append(region);
+    }
 }
 
 void ATDPBasics::RegionsProcessing () {

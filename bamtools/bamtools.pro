@@ -172,4 +172,4 @@ HEADERS += api/internal/io/NetUnix_p.h
 
 }
 
-QMAKE_CLEAN += lib$${TARGET}.* logfile.log *~  ../global/*~
+QMAKE_CLEAN += lib$${TARGET}.* logfile.log *~
