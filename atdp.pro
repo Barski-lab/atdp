@@ -17,13 +17,15 @@ HEADERS     += src/Arguments.hpp \
                src/main.hpp \
                src/config.hpp \
                src/math.hpp \
-               src/Matrix.hpp
+               src/Matrix.hpp \
+               src/bam_reader_util.hpp
 
 SOURCES     += src/Arguments.cpp \
                src/atdp.cpp \
                src/atdpbasics.cpp \
                src/Reads.cpp \
-               src/main.cpp
+               src/main.cpp \
+               src/bam_reader_util.cpp
 
 INCLUDEPATH += . \
                ./src \

@@ -1,36 +1,6 @@
 #include "atdpbasics.hpp"
 
 
-bool EXPERIMENT_INFO::make_index (){
-    if (not reader.HasIndex()){
-        qDebug() << "Current BAM file isn't indexed";
-        qDebug() << "Trying to find index files in the same directory";
-        // Trying to load index data from the filesystem
-        // If BamIndex::STANDARD we are looking for BAI file
-        if (reader.LocateIndex(BamIndex::STANDARD)){
-            qDebug() << "Located and loaded index file from disk";
-        } else {
-            qDebug() << "Couldn't locate index file";
-            qDebug() << "Trying to create the new one";
-            // Trying to create index data ourself
-            // BamIndex::STANDARD - we are trying to create BAI file
-            if (not reader.CreateIndex(BamIndex::STANDARD)){
-                qDebug() << "Cannot create index for current bam file. Exiting";
-                return false;
-            };
-            qDebug() << "Index file for current BAM file is succesfully created";
-        }
-    }
-    return true;
-}
-
-
-
-
-
-
-
-
 ATDPBasics::ATDPBasics(EXPERIMENT_INFO* e)
 {
     exp_i=e;
@@ -67,7 +37,7 @@ ATDPBasics::ATDPBasics(EXPERIMENT_INFO* e)
                     QPair<int,int>(RefID,exp_i->references[RefID].RefLength));
     }
 
-    if(!exp_i->make_index()) {
+    if(!make_index(exp_i->reader)) {
         throw "Could not locate index";
     }
     /*

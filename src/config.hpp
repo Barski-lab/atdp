@@ -46,7 +46,7 @@
 #include <QSharedPointer>
 
 #include <Arguments.hpp>
-
+#include "bam_reader_util.hpp"
 #include <api/BamMultiReader.h>
 #include <api/BamWriter.h>
 

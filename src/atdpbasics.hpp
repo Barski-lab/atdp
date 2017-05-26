@@ -38,8 +38,6 @@ struct EXPERIMENT_INFO {
         QVector<QPair<QSharedPointer<REGION>,QJsonArray > > rpkm_matrix;
         QVector<QPair<QSharedPointer<REGION>,QJsonArray > > body_matrix;
 
-        bool make_index ();
-
 };
 
 class ATDPBasics
