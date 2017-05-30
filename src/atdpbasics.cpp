@@ -15,15 +15,13 @@ ATDPBasics::ATDPBasics(EXPERIMENT_INFO* e)
      */
     QString fp = exp_i->filepath;
     if ( !exp_i->reader.Open(fp.toStdString()) ) {
-        qDebug() << "Could not open input BAM files.";
         throw "Could not open input BAM files";
     }
 
     exp_i->header = exp_i->reader.GetHeader();
     exp_i->references = exp_i->reader.GetReferenceData();
 
-    /* Organazing chrom ids
-     */
+    //Organazing chrom ids
     for(int RefID=0;RefID < (int)exp_i->references.size();RefID++) {
         if(ignorechr.contains(QString(exp_i->references[RefID].RefName.c_str()).toLower())) {
             exp_i->i_tids<<RefID;
@@ -37,12 +35,15 @@ ATDPBasics::ATDPBasics(EXPERIMENT_INFO* e)
                     QPair<int,int>(RefID,exp_i->references[RefID].RefLength));
     }
 
-    if(!make_index(exp_i->reader)) {
-        throw "Could not locate index";
-    }
-    /*
-     * Fill in all regions for the current uid
-     */
+    if(gArgs().getArgs("index").toString().isEmpty()) {
+        if (not exp_i->reader.LocateIndex(BamIndex::STANDARD)){
+            throw "Couldn't locate index alongside the BAM file";
+        };
+    } else if (not exp_i->reader.OpenIndex(gArgs().getArgs("index").toString().toStdString())) {
+        throw "Could not locate index set by --index parameter";
+    };
+
+    //Fill in all regions for the current uid
     this->getRegions();
 }
 

@@ -45,8 +45,8 @@ class ATDP: public QObject
         QString ignorechr;
 
         void getRecordInfo(void);
-        void getRecordsInfo(void);
-
+        void print(ostream& output_stream);
+        bool export_to_file(const string & output_filename);
     public slots:
         void start(void);
 

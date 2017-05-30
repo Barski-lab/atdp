@@ -215,90 +215,20 @@ void Arguments::Init(QStringList l)
 ****************************************************************************************/
 void Arguments::argsList(void)
 {
-    Arguments::addArg("avd_window","avd_window","AVD/WINDOW",QVariant::Int,"Average tag density window",5000);
-    Arguments::addArg("avd_heat_window","avd_heat_window","",QVariant::Int,"Average tag density window for heatmap",10);
+    Arguments::addArg("in","in","bamFilename",QVariant::String,"Input BAM file",QString(""));
+    Arguments::addArg("index","index","indexFilename",QVariant::String,"Input index bai file",QString(""));
+    Arguments::addArg("annotation","a","annotationFileName",QVariant::String,"Tab-separated annotation file",QString(""));
+    Arguments::addArg("out","out","outFileName",QVariant::String,"Base output filename",QString(""));
+    Arguments::addArg("log","log","logFileName",QVariant::String,"Log file name (default is ./logfile_def.log)",QString("./logfile_def.log"));
     Arguments::addArg("sam_twicechr","sam_twicechr","SAM/TWICECHR",QVariant::String,"Which chromosome to double",QString(""));// chrX chrY
     Arguments::addArg("sam_ignorechr","sam_ignorechr","SAM/IGNORECHR",QVariant::String,"Which chromosome to ignore",QString(""));//chrM
-    Arguments::addArg("bam","bam","",QVariant::String,"Input BAM file",QString(""));
-    Arguments::addArg("avd_guid","avd_guid","",QVariant::String,"Genelist uid",QString("")); // We don't need it if we don't implement Advanced analyses
-    // We need to add new paramter with fragmentsize
     Arguments::addArg("fragmentsize","f","FRAGMENTSIZE",QVariant::Int,"Fragmentsize, bp",150);
-    Arguments::addArg("annotation","a","annotationFileName",QVariant::String,"Tab-separated annotation file",QString(""));
-
-
-
-
-
-
-
-
-    Arguments::addArg("in","in","inFileName",QVariant::String,"Input filename, or list of filenames separated by comma without spaces.",QString(""));
-    Arguments::addArg("wardrobe","wardrobe","wardrobe",QVariant::String,"Wardrobe SQL Config",QString("/etc/wardrobe/wardrobe"));
-    Arguments::addArg("bedin","bedin","inBedFileName",QVariant::String,"Input filename in bed format",QString(""));
-    Arguments::addArg("batch","batch","batchFileName",QVariant::String,"Input Batchfile name, different structure for each programm","");
-    Arguments::addArg("out","out","outFileName",QVariant::String,"Base output file name",QString(""));
-    Arguments::addArg("log","log","logFileName",QVariant::String,"log file name (default is ./logfile_def.log)",QString("./logfile_def.log"));
-    Arguments::addArg("in_mutation","in_mutation","in_mutation",QVariant::String,"Mutations filename.",QString(""));
-
-    Arguments::addArg("bed_window","bed_window","BED/WINDOW",QVariant::Int,"Window for counting ",20);
-    Arguments::addArg("bed_siteshift","bed_siteshift","BED/SITESHIFT",QVariant::Int,"Bed graph reads shifting",0);
-    Arguments::addArg("bed_format","bed_format","BED/FORMAT",QVariant::Int,"Plus/minus =8, just barplot =4",4);
-    Arguments::addArg("bed_type","bed_type","BED/type",QVariant::Int,"How to count reads: just starts =0, middle of fragments =1,whole read cover =2, window cover =3",0);
-    Arguments::addArg("bed_separatestrand","bed_separatestrand","BED/SEPARATESTRAND",QVariant::Bool,"",false);
-    Arguments::addArg("bed_HeaderString","bed_HeaderString","BED/HEADERSTRING",QVariant::String,"",QString("track type=bedGraph name=%1"));
-    Arguments::addArg("bed_normalize","bed_normalize","",QVariant::Bool,"",false);
-    Arguments::addArg("bed_autoresolution","bed_autoresolution","",QVariant::Bool,"Scales a resolution from 1 to 10 ",true);
-
-    Arguments::addArg("no-bed-file","no-bed-file","",QVariant::Bool,"Do not create bed file",false);
-    Arguments::addArg("no-file","no-file","",QVariant::Bool,"Do not produce file output",false);
-    Arguments::addArg("no-sql-upload","no-sql-upload","",QVariant::Bool,"Do not upload to SQL",false);
-
-    Arguments::addArg("rna_seq","rna_seq","rnaseq",QVariant::String,"","");
-
-    Arguments::addArg("debug_gene","debug_gene","debug_gene",QVariant::String,"Shows full debug information about this gene","");
-
-    Arguments::addArg("rpkm_cutoff","rpkm-cutoff","RPKM/CUTOFF",QVariant::String,"Cutoff for RPKM","0.1");
-    Arguments::addArg("rpkm_cutoff_val","rpkm-cutoff-val","RPKM/CUTOFFVAL",QVariant::String,"Cutoff value for RPKM","0.0");
-
-    Arguments::addArg("math_converging","math-converging","MATH/CONVERGING",QVariant::String,"Type of converging: arithmetic, geometric","geometric");
-
-
-
-
+    Arguments::addArg("avd_window","avd_window","AVD/WINDOW",QVariant::Int,"Average tag density window",5000);
     Arguments::addArg("avd_smooth","avd_smooth","AVD/SMOOTH",QVariant::Int,"Average smooth window (odd)",0);
-    Arguments::addArg("avd_bsmooth","avd_bsmooth","AVD/BSMOOTH",QVariant::Int,"Average smooth window for gene body",20);
-    Arguments::addArg("avd_rawdata","avd_rawdata","AVD/RAWDATA",QVariant::Bool,"Output of raw data",false);
-    Arguments::addArg("avd_wilc_region","avd_wilc_region","AVD/WILCREG",QVariant::String,"Which region dump with raw data -avd_wilc_region=\"-100:-5\"",QString(""));
+    Arguments::addArg("avd_heat_window","avd_heat_window","",QVariant::Int,"Average tag density window for heatmap",10);                            // ADVANCED
+    Arguments::addArg("avd_bsmooth","avd_bsmooth","AVD/BSMOOTH",QVariant::Int,"Average smooth window for gene body",20);                            // ADVANCED
+    Arguments::addArg("avd_guid","avd_guid","",QVariant::String,"Genelist uid",QString(""));                                                        // ADVANCED
 
-    Arguments::addArg("avd_guid","avd_guid","",QVariant::String,"Genelist uid",QString(""));
-    Arguments::addArg("avd_lid","avd_lid","AVD/LID",QVariant::Int,"Labdata id",0);
-    Arguments::addArg("avd_id","avd_id","AVD/ID",QVariant::String,"Genelist id",QString(""));
-    Arguments::addArg("avd_sort","avd_sort","",QVariant::Bool,"Order output in asc",false);
-    Arguments::addArg("avd_sort_name","avd_sort_name","AVD/SORTNAME",QVariant::String,"Name of the column to sort",QString(""));
-    Arguments::addArg("avd_sort_column","avd_sort_column","AVD/SSORTNAME",QVariant::String,"Name of the column to sort",QString(""));
-    Arguments::addArg("avd_expresssion_columns","avd_expresssion_columns","AVD/EXPRESSIONCOL",QVariant::String,"Names of the columns to select",QString(""));
-
-    Arguments::addArg("uid","uid","UUID",QVariant::String,"UUID",QString(""));
-    Arguments::addArg("guid","guid","GUUID",QVariant::String,"GUUID",QString(""));
-
-    Arguments::addArg("promoter","promoter","",QVariant::Int,"Promoter region around TSS in bp.",1000);
-    Arguments::addArg("upstream","upstream","",QVariant::Int,"Upstream region before promoter in BP",20000);
-
-
-    Arguments::addArg("plot_ext","plot_ext","",QVariant::String,"","");
-    Arguments::addArg("gnuplot","gnuplot","",QVariant::String,"Path to gnuplot",QString("gnuplot.exe"));
-
-    Arguments::addArg("window","window","WINDOW",QVariant::Int,"Window",2000);
-
-    Arguments::addArg("threads","threads","",QVariant::Int,"Max number of threads",0);
-
-    Arguments::addArg("sam_siteshift","sam_siteshift","SAM/SITESHIFT",QVariant::Int,"Default siteshift",0);
-    Arguments::addArg("sam_mapped_limit","sam_mapped_limit","SAM/MAPPEDLIMIT",QVariant::Int,"Default limit to mapped data",0);
-    Arguments::addArg("sam_twicechr","sam_twicechr","SAM/TWICECHR",QVariant::String,"Which chromosome to double",QString(""));// chrX chrY
-
-    Arguments::addArg("sam_frag_filtr","sam_frag_filtr","SAM/FRAGFILTR",QVariant::String,"Which length of fragment to leave -sam_frag_filtr=\"120-150\"",QString(""));
-
-    Arguments::addArg("debug","debug","DEBUG",QVariant::Bool,"Output debug data",false);
 }
 
 /***************************************************************************************

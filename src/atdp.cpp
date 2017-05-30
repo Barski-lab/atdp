@@ -46,7 +46,7 @@ class ATDPThreads: public QRunnable
 //-------------------------------------------------------------
 ATDP::ATDP(QObject* parent):
     QObject(parent)
-{
+{        
     avd_window=gArgs().getArgs("avd_window").toInt();
     avd_whole_region=avd_window*2+1;
     avd_heat_window=gArgs().getArgs("avd_heat_window").toInt();
@@ -56,28 +56,17 @@ ATDP::ATDP(QObject* parent):
 }
 
 void ATDP::start() {
-
-    EXPERIMENT_INFO* exp_i;
-    bool preliminary_atdp=false;
-
     qDebug()<<"start";
 
-    /*
-     * Prepare experiments to proccess
-     */
-    if(!gArgs().getArgs("bam").toString().isEmpty()) {
-        preliminary_atdp=true;
-        this->getRecordInfo();
-    } else {
-        throw "Starving for uid";
-    }
-
+    //Prepare experiments to proccess
+    this->getRecordInfo();
 
     QThreadPool *t_pool=QThreadPool::globalInstance();
 
+    //foreach trough experiments
     foreach(QString key,experiment_info.keys()){
         t_pool->start(new ATDPThreads(&experiment_info[key]));
-    }//foreach trough experiments
+    }
 
     if(t_pool->activeThreadCount()!=0) {
         qDebug()<<"waiting threads";
@@ -85,52 +74,11 @@ void ATDP::start() {
         qDebug()<<"threads done";
     }
 
+    if ( !export_to_file( gArgs().getArgs("out").toString().toStdString() ) ){
+        throw "Error export results";
+    }
 
-//    // Write the results to file
-//    if(preliminary_atdp) {
-//        QSqlQuery q;
-//        exp_i=&experiment_info[experiment_info.keys().at(0)];
-//        QVector<double> storage;
-//        for(int w=0; w< exp_i->avd_total.size(); w++)
-//            storage<<(exp_i->avd_total.at(w)/exp_i->mapped)/exp_i->regions.size();
-//        storage=Math::smooth<double>(storage,gArgs().getArgs("avd_smooth").toInt());
 
-//        /*
-//         * First part just standart average tag density
-//         */
-//        QString CREATE_TABLE=QString("DROP TABLE IF EXISTS `%1`.`%2_atdp`;"
-//                                     "CREATE TABLE `%3`.`%4_atdp` ( "
-//                                     "`X` INT NULL ,"
-//                                     "`Y` FLOAT NULL ,"
-//                                     "INDEX X_idx (X) using btree"
-//                                     ")"
-//                                     "ENGINE = MyISAM "
-//                                     "COMMENT = 'created by atdp';").
-//                             arg(gSettings().getValue("experimentsdb")).
-//                             arg(gArgs().getArgs("avd_luid").toString()).
-//                             arg(gSettings().getValue("experimentsdb")).
-//                             arg(gArgs().getArgs("avd_luid").toString());
-
-//        if(!q.exec(CREATE_TABLE)) {
-//            qDebug()<<"Query error T: "<<q.lastError().text();
-//        }
-
-//        QString SQL_QUERY_BASE=QString("insert into `%1`.`%2_atdp` values ").
-//                               arg(gSettings().getValue("experimentsdb")).
-//                               arg(gArgs().getArgs("avd_luid").toString());
-//        QString SQL_QUERY="";
-
-//        int rows=storage.size();
-//        for(int i=0; i<rows;i++) {
-//            SQL_QUERY+=QString(" (%1,%2),").
-//                       arg((int)(i-rows/2)).
-//                       arg(storage.at(i));
-//        }
-
-//        SQL_QUERY.chop(1);
-//        if(!q.exec(SQL_QUERY_BASE+SQL_QUERY+";")) {
-//            qDebug()<<"Query error batch up: "<<q.lastError().text();
-//        }
 //    } else { // Advanced Analyses
 
 //        QJsonArray columns_name;
@@ -231,6 +179,7 @@ void ATDP::start() {
 //        outFile.close();
 //    }
 
+
     qDebug()<<"end";
 
     emit finished();
@@ -238,22 +187,13 @@ void ATDP::start() {
 
 
 void ATDP::getRecordInfo() {
-    /*
-    q.prepare("select g.db,g.annottable,l.fragmentsize,l.tagsmapped,l.filename from labdata l,genome g where l.uid=? and g.id=l.genome_id");
-    +------+--------------+--------------+------------+--------------------------------------+
-    | db   | annottable   | fragmentsize | tagsmapped | filename                             |
-    +------+--------------+--------------+------------+--------------------------------------+
-    | hg19 | refGene_2012 |          147 |    6732122 | SC949044-F05E-B6B9-DE22-6817DBBCB66E |
-    +------+--------------+--------------+------------+--------------------------------------+
-    */
-
-    if(gArgs().getArgs("bam").toString().isEmpty()) {
+    if(gArgs().getArgs("in").toString().isEmpty()) {
         throw "Set input BAM file";
     }
 
     EXPERIMENT_INFO *ei = new EXPERIMENT_INFO();
     ei->fragmentsize=gArgs().getArgs("fragmentsize").toInt();
-    ei->filepath=gArgs().getArgs("bam").toString();
+    ei->filepath=gArgs().getArgs("in").toString();
     ei->avd_total.resize(avd_whole_region);
     ei->avd_total.fill(0,avd_whole_region);
     ei->avd_body.resize(avd_bodysize*3);
@@ -263,12 +203,13 @@ void ATDP::getRecordInfo() {
     if ( !ei->reader.Open(ei->filepath.toStdString()) ) {
         throw "Could not open input BAM files";
     }
+
     BamGeneralInfo bam_general_info;
     get_bam_info (ei->reader, bam_general_info);
     ei->mapped = bam_general_info.aligned;
     ei->reader.Close();
 
-    experiment_info.insert(gArgs().getArgs("bam").toString(),*ei);
+    experiment_info.insert(gArgs().getArgs("in").toString(),*ei);
 }
 
 /*
@@ -306,6 +247,35 @@ void ATDP::getRecordInfo() {
 //        experiment_info.insert(q.value(2).toString()+"="+q.value(1).toString(),*ei);
 //    }
 //}
+
+void ATDP::print(ostream& output_stream){
+    EXPERIMENT_INFO* exp_i;
+    exp_i=&experiment_info[experiment_info.keys().at(0)];
+    QVector<double> storage;
+    for(int w=0; w< exp_i->avd_total.size(); w++)
+        storage<<(exp_i->avd_total.at(w)/exp_i->mapped)/exp_i->regions.size();
+    storage=Math::smooth<double>(storage,gArgs().getArgs("avd_smooth").toInt());
+    int rows=storage.size();
+    output_stream // header line
+            << "X" << "\t"
+            << "Y" << endl;
+    for(int i=0; i<rows;i++) {
+        output_stream << (int)(i-rows/2) << "\t";
+        output_stream << std::setprecision (15) << storage.at(i) << endl;
+    }
+}
+
+bool ATDP::export_to_file(const string & output_filename){
+    ofstream output_stream (output_filename);
+    if (output_stream.is_open())
+    {
+        print(output_stream);
+        output_stream.close();
+        return true;
+    }
+    return false;
+}
+
 
 
 ATDP::~ATDP()

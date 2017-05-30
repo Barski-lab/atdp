@@ -54,12 +54,14 @@ using namespace BamTools;
 
 #include <typeinfo>
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
 #include <string>
 #include <vector>
 #include <math.h>
+#include <iomanip>
 using namespace std;
 
 #ifndef Q_MOC_RUN
