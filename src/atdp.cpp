@@ -266,7 +266,7 @@ void ATDP::print(ostream& output_stream){
 }
 
 bool ATDP::export_to_file(const string & output_filename){
-    ofstream output_stream (output_filename);
+    ofstream output_stream (output_filename.c_str());
     if (output_stream.is_open())
     {
         print(output_stream);
