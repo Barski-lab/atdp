@@ -225,7 +225,7 @@ void Arguments::argsList(void)
     Arguments::addArg("fragmentsize","f","FRAGMENTSIZE",QVariant::Int,"Fragmentsize, bp",150);
     Arguments::addArg("avd_window","avd_window","AVD/WINDOW",QVariant::Int,"Average tag density window",5000);
     Arguments::addArg("avd_smooth","avd_smooth","AVD/SMOOTH",QVariant::Int,"Average smooth window (odd)",0);
-    Arguments::addArg("avd_heat_window","avd_heat_window","",QVariant::Int,"Average tag density window for heatmap",10);                            // ADVANCED
+    Arguments::addArg("avd_heat_window","avd_heat_window","",QVariant::Int,"Average tag density window for heatmap",10);
     Arguments::addArg("avd_bsmooth","avd_bsmooth","AVD/BSMOOTH",QVariant::Int,"Average smooth window for gene body",20);                            // ADVANCED
     Arguments::addArg("avd_guid","avd_guid","",QVariant::String,"Genelist uid",QString(""));                                                        // ADVANCED
 
