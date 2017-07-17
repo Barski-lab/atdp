@@ -198,17 +198,7 @@ void ATDP::getRecordInfo() {
     ei->avd_total.fill(0,avd_whole_region);
     ei->avd_body.resize(avd_bodysize*3);
     ei->avd_body.fill(0,avd_bodysize*3);
-
-    // Get mapped reads number from BAM file
-    if ( !ei->reader.Open(ei->filepath.toStdString()) ) {
-        throw "Could not open input BAM files";
-    }
-
-    BamGeneralInfo bam_general_info;
-    get_bam_info (ei->reader, bam_general_info);
-    ei->mapped = bam_general_info.aligned;
-    ei->reader.Close();
-
+    ei->mapped=gArgs().getArgs("mappedreads").toInt();
     experiment_info.insert(gArgs().getArgs("in").toString(),*ei);
 }
 

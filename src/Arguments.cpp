@@ -223,6 +223,7 @@ void Arguments::argsList(void)
     Arguments::addArg("sam_twicechr","sam_twicechr","SAM/TWICECHR",QVariant::String,"Which chromosome to double",QString(""));// chrX chrY
     Arguments::addArg("sam_ignorechr","sam_ignorechr","SAM/IGNORECHR",QVariant::String,"Which chromosome to ignore",QString(""));//chrM
     Arguments::addArg("fragmentsize","f","FRAGMENTSIZE",QVariant::Int,"Fragmentsize, bp",150);
+    Arguments::addArg("mappedreads","m","MAPPEDREADS",QVariant::Int,"Mapped reads, reads",1);
     Arguments::addArg("avd_window","avd_window","AVD/WINDOW",QVariant::Int,"Average tag density window",5000);
     Arguments::addArg("avd_smooth","avd_smooth","AVD/SMOOTH",QVariant::Int,"Average smooth window (odd)",0);
     Arguments::addArg("avd_heat_window","avd_heat_window","",QVariant::Int,"Average tag density window for heatmap",10);
